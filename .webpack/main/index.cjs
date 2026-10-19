@@ -912,6 +912,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_3__);
 
 
+
+
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if ((electron_squirrel_startup__WEBPACK_IMPORTED_MODULE_1___default())) {
     electron__WEBPACK_IMPORTED_MODULE_0__.app.quit();
@@ -935,9 +937,7 @@ const createWindow = () => {
     // Open the DevTools.
     mainWindow.webContents.openDevTools();
 };
-//API 처리
-
-
+// API 처리
 dotenv__WEBPACK_IMPORTED_MODULE_2___default().config({ path: path__WEBPACK_IMPORTED_MODULE_3___default().join(electron__WEBPACK_IMPORTED_MODULE_0__.app.getAppPath(), '.env') });
 electron__WEBPACK_IMPORTED_MODULE_0__.ipcMain.handle('get-holidays', async (_event, year, month) => {
     const serviceKey = process.env.HOLIDAY_API_KEY;

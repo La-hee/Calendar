@@ -1,5 +1,7 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import started from 'electron-squirrel-startup';
+import dotenv from 'dotenv';
+import path from 'path';
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
@@ -33,9 +35,7 @@ const mainWindow = new BrowserWindow({
   mainWindow.webContents.openDevTools();
 };
 
-//API 처리
-import dotenv from 'dotenv';
-import path from 'path';
+// API 처리
 
 dotenv.config({ path: path.join(app.getAppPath(), '.env') });
 

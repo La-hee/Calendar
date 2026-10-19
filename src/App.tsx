@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 
 type Schedule = {
@@ -10,6 +9,11 @@ type Schedule = {
   alarm: string;
   repeat: string;
   memo: string;
+};
+
+type Holiday = {
+  date: string;
+  name: string;
 };
 
 const colors = [
@@ -30,6 +34,7 @@ export default function App() {
   const [viewDate, setViewDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState('');
   const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [title, setTitle] = useState('');
   const [time, setTime] = useState('09:00');
   const [color, setColor] = useState(colors[0].value);
@@ -41,6 +46,28 @@ export default function App() {
   const month = viewDate.getMonth();
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  useEffect(() => {
+  let cancelled = false;
+
+  window.holidayAPI
+    .getHolidays(year, month + 1)
+    .then((data) => {
+      if (!cancelled) {
+        setHolidays(data);
+      }
+    })
+    .catch((error) => {
+      console.error('공휴일 조회 실패:', error);
+      if (!cancelled) {
+        setHolidays([]);
+      }
+    });
+
+  return () => {
+    cancelled = true;
+  };
+}, [year, month]);
 
   const now = new Date();
   const today = dateKey(now);
@@ -147,6 +174,10 @@ export default function App() {
 
             const weekday = currentDate.getDay();
 
+            const holiday = holidays.find(
+              (item) => item.date === key.replaceAll('-', ''),
+            );
+
             return (
               <button
                 key={key}
@@ -159,17 +190,27 @@ export default function App() {
                 onClick={() => openDay(key)}
                 aria-label={`${key} 일정 추가`}
               >
-                <span
-                  className={[
-                    'day-number',
-                    weekday === 0 ? 'sun' : '',
-                    weekday === 6 ? 'sat' : '',
-                  ]
-                    .filter(Boolean)
-                    .join(' ')}
-                >
-                  {day}
+                
+                <span className="day-heading">
+                  <span
+                    className={[
+                      'day-number',
+                      holiday || weekday === 0 ? 'sun' : '',
+                      !holiday && weekday === 6 ? 'sat' : '',
+                    ]
+                      .filter(Boolean)
+                      .join(' ')}
+                  >
+                    {day}
+                  </span>
+
+                  {holiday && (
+                    <span className="holiday-name">
+                      {holiday.name}
+                    </span>
+                  )}
                 </span>
+
 
                 <span className="event-list">
                   {daySchedules.map((schedule) => (
