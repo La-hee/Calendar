@@ -7,7 +7,12 @@ declare global {
       getHolidays: (
         year: number,
         month: number,
-      ) => Promise<{ date: string; name: string }[]>;
+      ) => Promise<
+        {
+          date: string;
+          name: string;
+        }[]
+      >;
     };
 
     scheduleAPI: {
@@ -18,10 +23,10 @@ declare global {
           date: string;
           time: string;
           color: string;
-          alarm: string;
+          alarm: string | number;
           repeat: string;
           memo: string;
-          completed: number | boolean;
+          completed: boolean | number;
         }[]
       >;
 
@@ -40,12 +45,12 @@ declare global {
         id: number;
         title: string;
         date: string;
-        time: string;
-        color: string;
-        alarm: string;
-        repeat: string;
-        memo: string;
-        completed: boolean;
+        time?: string;
+        color?: string;
+        alarm?: string;
+        repeat?: string;
+        memo?: string;
+        completed?: boolean;
       }) => Promise<boolean>;
 
       toggleCompleted: (

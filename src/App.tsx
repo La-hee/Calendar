@@ -195,34 +195,44 @@ const saveSchedule = async () => {
 
   return (
     <main className="app">
-      <header className="calendar-header drag-area">
-        <button
-          className="nav-btn"
-          onClick={() => setViewDate(new Date(year, month - 1, 1))}
-          aria-label="이전 달"
-        >
-          ‹
-        </button>
+      
+    
+<header className="calendar-header drag-area">
+  <div className="today-info">
+    <strong className="today-date">
+      <span className="today-prefix">오늘은</span>
+      {year}.{month + 1}.{now.getDate()}
+      <span className="today-weekday">{todayWeekday}</span>
+    </strong>
+  </div>
 
-        <div className="today-info">
-          <strong className="today-date"> <span className="today-prefix">오늘은</span>
-            {year}.{month+1}.{now.getDate()} 
-            <span className = "today-weekday"> {todayWeekday} </span></strong>
-        </div>
+  <div className="month-title">
+    <div className="month-arrows">
+      <button
+        className="nav-btn"
+        onClick={() => setViewDate(new Date(year, month - 1, 1))}
+        aria-label="이전 달"
+      >
+        ‹
+      </button>
 
-        <div className="month-title">
-          <span className ="month-year">{year}년</span>
-          <strong className="month-number">{month+1}월</strong>
-        </div>
+      <button
+        className="nav-btn"
+        onClick={() => setViewDate(new Date(year, month + 1, 1))}
+        aria-label="다음 달"
+      >
+        ›
+      </button>
+    </div>
 
-        <button
-          className="nav-btn"
-          onClick={() => setViewDate(new Date(year, month + 1, 1))}
-          aria-label="다음 달"
-        >
-          ›
-        </button>
-      </header>
+    <div className="month-label">
+      <strong className="month-number">{month + 1}월</strong>
+      <span className="month-year">{year}년</span>
+    </div>
+  </div>
+</header>
+
+
 
       <section className="calendar" aria-label={`${monthLabel} 달력`}>
         <div className="weekdays">
