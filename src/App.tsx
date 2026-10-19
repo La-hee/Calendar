@@ -9,6 +9,7 @@ type Schedule = {
   alarm: string;
   repeat: string;
   memo: string;
+  completed: boolean;
 };
 
 type Holiday = {
@@ -33,6 +34,7 @@ const dateKey = (date: Date) =>
 export default function App() {
   const [viewDate, setViewDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState('');
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [title, setTitle] = useState('');
@@ -44,7 +46,7 @@ export default function App() {
 
   const year = viewDate.getFullYear();
   const month = viewDate.getMonth();
-  const firstDay = new Date(year, month, 1).getDay();
+  const firstDay = (new Date(year, month, 1).getDay() + 6) % 7;
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
   useEffect(() => {
@@ -92,11 +94,52 @@ export default function App() {
     setAlarm('없음');
     setRepeat('반복 안 함');
     setMemo('');
+    setEditingId(null);
+  };
+const openSchedule = (schedule: Schedule) => {
+  setSelectedDate(schedule.date);
+  setEditingId(schedule.id);
+  setTitle(schedule.title);
+  setTime(schedule.time);
+  setColor(schedule.color);
+  setAlarm(schedule.alarm);
+  setRepeat(schedule.repeat);
+  setMemo(schedule.memo);
+};
+
+
+  const toggleScheduleCompleted = (id: number) => {
+    setSchedules((current) =>
+      current.map((schedule) =>
+        schedule.id === id
+          ? { ...schedule, completed: !schedule.completed }
+          : schedule,
+      ),
+    );
   };
 
-  const saveSchedule = () => {
-    if (!title.trim() || !selectedDate) return;
 
+  const saveSchedule = () => {
+  if (!title.trim() || !selectedDate) return;
+
+  if (editingId !== null) {
+    setSchedules((current) =>
+      current.map((schedule) =>
+        schedule.id === editingId
+          ? {
+              ...schedule,
+              title: title.trim(),
+              date: selectedDate,
+              time,
+              color,
+              alarm,
+              repeat,
+              memo,
+            }
+          : schedule,
+      ),
+    );
+  } else {
     setSchedules((current) => [
       ...current,
       {
@@ -108,11 +151,14 @@ export default function App() {
         alarm,
         repeat,
         memo,
+        completed: false,
       },
     ]);
+  }
 
-    setSelectedDate('');
-  };
+  setSelectedDate('');
+  setEditingId(null);
+};
 
   return (
     <main className="app">
@@ -147,11 +193,11 @@ export default function App() {
 
       <section className="calendar" aria-label={`${monthLabel} 달력`}>
         <div className="weekdays">
-          {['일', '월', '화', '수', '목', '금', '토'].map(
+          {['월', '화', '수', '목', '금', '토', '일'].map(
             (day, index) => (
               <div
                 key={day}
-                className={index === 0 ? 'sun' : index === 6 ? 'sat' : ''}
+                className={index === 5 ? 'sat' : index === 6 ? 'sun' : ''}
               >
                 {day}
               </div>
@@ -213,19 +259,52 @@ export default function App() {
 
 
                 <span className="event-list">
-                  {daySchedules.map((schedule) => (
-                    <span
-                      className="event-dot"
-                      key={schedule.id}
-                      style={{
-                        backgroundColor: `${schedule.color}22`,
-                        borderLeft: `3px solid ${schedule.color}`,
-                      }}
-                      title={schedule.title}
-                    >
-                      {schedule.title}
-                    </span>
-                  ))}
+                 
+              {daySchedules.map((schedule) => (
+               <span
+                 className="event-dot"
+                  key={schedule.id}
+                  style={{
+                   backgroundColor: `${schedule.color}22`,
+                   borderLeft: `3px solid ${schedule.color}`,
+                   cursor: 'pointer',
+                   textDecoration: schedule.completed ? 'line-through' : 'none',
+                   opacity: schedule.completed ? 0.65 : 1,
+                  }}
+                  title={`${schedule.title} - 클릭해서 수정`}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    openSchedule(schedule);
+                  }}
+  >
+                  <span
+                   role="checkbox"
+                    aria-checked={schedule.completed}
+                   aria-label={`${schedule.title} 완료`}
+                   tabIndex={0}
+                    onClick={(event) => {
+                     event.stopPropagation();
+                     toggleScheduleCompleted(schedule.id);
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                       event.preventDefault();
+                        event.stopPropagation();
+                        toggleScheduleCompleted(schedule.id);
+                     }
+                    }}
+                   style={{
+                     display: 'inline-block',
+                     marginRight: '3px',
+                     cursor: 'pointer',
+                    }}
+    >
+                    {schedule.completed ? '☑' : '□'}
+                 </span>
+                 {schedule.title}
+                </span>
+              ))}
+
                 </span>
               </button>
             );
@@ -247,7 +326,9 @@ export default function App() {
           >
             <header className="modal-header">
               <div>
-                <h2 id="modal-title">새 일정</h2>
+                <h2 id="modal-title">
+                  {editingId !== null ? '일정 수정' : '새 일정'}
+                </h2>
                 <p>{selectedDate}</p>
               </div>
 
