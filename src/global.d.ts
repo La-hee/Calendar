@@ -15,6 +15,11 @@ declare global {
       >;
     };
 
+    windowAPI: {
+      getLocked: () => Promise<boolean>;
+      setLocked: (locked: boolean) => Promise<boolean>;
+    };
+
     scheduleAPI: {
       getAll: () => Promise<
         {
@@ -60,3 +65,5 @@ declare global {
     };
   }
 }
+
+

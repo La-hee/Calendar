@@ -35,3 +35,9 @@ contextBridge.exposeInMainWorld('scheduleAPI', {
   toggleCompleted: (id: number, completed: boolean) =>
     ipcRenderer.invoke('schedules:toggle-completed', id, completed),
 });
+
+contextBridge.exposeInMainWorld('windowAPI', {
+  getLocked: () => ipcRenderer.invoke('window:get-locked'),
+  setLocked: (locked: boolean) =>
+    ipcRenderer.invoke('window:set-locked', locked),
+});

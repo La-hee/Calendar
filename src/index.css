@@ -42,12 +42,24 @@ button {
    ========================= */
 
 .calendar-header {
+  position: relative;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 14px;
+}
+
+.calendar-header.drag-area {
   -webkit-app-region: drag;
+}
+
+.calendar-header.no-drag {
+  -webkit-app-region: no-drag;
+}
+
+.calendar-header button {
+  -webkit-app-region: no-drag;
 }
 
 .calendar-header button {
@@ -327,7 +339,7 @@ button {
   border-radius: 2px;
   background: rgb(255 255 255 / 72%);
   color: #343744;
-  font-size: 10px;
+  font-size: 12px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -409,7 +421,8 @@ button {
   outline: none;
   background: #fff;
   color: #292c35;
-  font-size: 13px;
+  font-size: 12px;
+  font-weight: 400;
 }
 
 .field input:focus,
@@ -494,4 +507,27 @@ button {
   .event-modal {
     padding: 16px;
   }
+}
+
+.pin-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid rgb(130 140 155 / 20%);
+  border-radius: 8px;
+  background: rgb(255 255 255 / 75%);
+  font-size: 16px;
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+}
+
+.pin-btn:hover {
+  background: #e9efff;
 }

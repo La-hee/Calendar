@@ -43,6 +43,7 @@ export default function App() {
   const [alarm, setAlarm] = useState('없음');
   const [repeat, setRepeat] = useState('반복 안 함');
   const [memo, setMemo] = useState('');
+  const [isWindowLocked, setIsWindowLocked] = useState(false);
 
   const year = viewDate.getFullYear();
   const month = viewDate.getMonth();
@@ -67,6 +68,14 @@ export default function App() {
     });
 }, []);
 
+  useEffect(() => {
+  window.windowAPI
+    .getLocked()
+    .then(setIsWindowLocked)
+    .catch((error) => {
+      console.error('창 이동 잠금 상태 조회 실패:', error);
+    });
+  }, []);
 
   useEffect(() => {
   let cancelled = false;
@@ -197,7 +206,11 @@ const saveSchedule = async () => {
     <main className="app">
       
     
-<header className="calendar-header drag-area">
+<header
+  className={`calendar-header ${
+    isWindowLocked ? 'no-drag' : 'drag-area'
+  }`}
+>
   <div className="today-info">
     <strong className="today-date">
       <span className="today-prefix">오늘은</span>
@@ -230,6 +243,27 @@ const saveSchedule = async () => {
       <span className="month-year">{year}년</span>
     </div>
   </div>
+
+  <button
+  type="button"
+  className="pin-btn no-drag"
+  aria-label={isWindowLocked ? '창 이동 잠금 해제' : '창 이동 잠금'}
+  aria-pressed={isWindowLocked}
+  title={isWindowLocked ? '창 이동 잠금 해제' : '창 이동 잠금'}
+  onClick={async (event) => {
+    event.stopPropagation();
+
+    try {
+      const locked = await window.windowAPI.setLocked(!isWindowLocked);
+      setIsWindowLocked(locked);
+    } catch (error) {
+      console.error('창 이동 잠금 변경 실패:', error);
+    }
+  }}
+>
+  {isWindowLocked ? '📌' : '📍'}
+</button>
+
 </header>
 
 

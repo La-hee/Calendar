@@ -918,10 +918,13 @@ __webpack_require__.r(__webpack_exports__);
 
 
 let db;
-// Handle creating/removing shortcuts on Windows when installing/uninstalling.
+let mainWindow = null;
+let isWindowLocked = false;
+// 설치 및 제거 처리
 if ((electron_squirrel_startup__WEBPACK_IMPORTED_MODULE_1___default())) {
     electron__WEBPACK_IMPORTED_MODULE_0__.app.quit();
 }
+// 데이터베이스 초기화
 const initDatabase = () => {
     const dbPath = path__WEBPACK_IMPORTED_MODULE_3___default().join(electron__WEBPACK_IMPORTED_MODULE_0__.app.getPath('userData'), 'calendar.db');
     db = new (better_sqlite3__WEBPACK_IMPORTED_MODULE_4___default())(dbPath);
@@ -939,9 +942,9 @@ const initDatabase = () => {
     )
   `);
 };
+// 창 생성
 const createWindow = () => {
-    // Create the browser window.
-    const mainWindow = new electron__WEBPACK_IMPORTED_MODULE_0__.BrowserWindow({
+    mainWindow = new electron__WEBPACK_IMPORTED_MODULE_0__.BrowserWindow({
         width: 580,
         height: 440,
         transparent: true,
@@ -949,22 +952,35 @@ const createWindow = () => {
         resizable: true,
         hasShadow: false,
         backgroundColor: '#00000000',
+        alwaysOnTop: false,
+        skipTaskbar: true,
         webPreferences: {
             preload: 'C:\\Users\\라희\\OneDrive\\바탕 화면\\ᏊᵕꈊᵕᏊ\\dal-calendar\\.webpack\\renderer\\main_window\\preload.cjs',
         },
     });
-    // and load the index.html of the app.
+    // 현재 고정 상태 적용
     mainWindow.loadURL('http://localhost:3000/main_window/index.html');
-    // Open the DevTools.
+    // 개발자 도구
     mainWindow.webContents.openDevTools();
+    mainWindow.on('closed', () => {
+        mainWindow = null;
+    });
 };
+// 창 고정 상태 변경
+electron__WEBPACK_IMPORTED_MODULE_0__.ipcMain.handle('window:set-locked', (_event, locked) => {
+    isWindowLocked = Boolean(locked);
+    return isWindowLocked;
+});
+// 창 고정 상태 조회
+electron__WEBPACK_IMPORTED_MODULE_0__.ipcMain.handle('window:get-locked', () => {
+    return isWindowLocked;
+});
 // 일정 목록 불러오기
 electron__WEBPACK_IMPORTED_MODULE_0__.ipcMain.handle('schedules:get-all', () => {
     return db.prepare(`
     SELECT * FROM schedules ORDER BY date, time
   `).all();
 });
-// 일정 추가하기
 // 일정 추가하기
 electron__WEBPACK_IMPORTED_MODULE_0__.ipcMain.handle('schedules:add', (_event, schedule) => {
     const result = db.prepare(`
@@ -1015,8 +1031,11 @@ electron__WEBPACK_IMPORTED_MODULE_0__.ipcMain.handle('schedules:toggle-completed
     `).run(completed ? 1 : 0, id);
     return true;
 });
-// API 처리
-dotenv__WEBPACK_IMPORTED_MODULE_2___default().config({ path: path__WEBPACK_IMPORTED_MODULE_3___default().join(electron__WEBPACK_IMPORTED_MODULE_0__.app.getAppPath(), '.env') });
+// 환경변수 불러오기
+dotenv__WEBPACK_IMPORTED_MODULE_2___default().config({
+    path: path__WEBPACK_IMPORTED_MODULE_3___default().join(electron__WEBPACK_IMPORTED_MODULE_0__.app.getAppPath(), '.env'),
+});
+// 공휴일 API
 electron__WEBPACK_IMPORTED_MODULE_0__.ipcMain.handle('get-holidays', async (_event, year, month) => {
     const serviceKey = process.env.HOLIDAY_API_KEY;
     if (!serviceKey) {
@@ -1044,30 +1063,22 @@ electron__WEBPACK_IMPORTED_MODULE_0__.ipcMain.handle('get-holidays', async (_eve
         name: item.dateName,
     }));
 });
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
+// 앱 초기화 완료 후 실행
 electron__WEBPACK_IMPORTED_MODULE_0__.app.whenReady().then(() => {
     initDatabase();
     createWindow();
-    // On OS X it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
     electron__WEBPACK_IMPORTED_MODULE_0__.app.on('activate', () => {
         if (electron__WEBPACK_IMPORTED_MODULE_0__.BrowserWindow.getAllWindows().length === 0) {
             createWindow();
         }
     });
 });
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
+// 모든 창이 닫혔을 때 처리
 electron__WEBPACK_IMPORTED_MODULE_0__.app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
         electron__WEBPACK_IMPORTED_MODULE_0__.app.quit();
     }
 });
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and import them here.
 
 
 /***/ },
