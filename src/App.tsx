@@ -50,6 +50,25 @@ export default function App() {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
   useEffect(() => {
+  window.scheduleAPI
+    .getAll()
+    .then((rows) => {
+      setSchedules(
+        rows.map((row) => ({
+          ...row,
+          alarm: String(row.alarm ?? '없음'),
+          repeat: String(row.repeat ?? '반복 안 함'),
+          completed: Boolean(row.completed),
+        })),
+      );
+    })
+    .catch((error) => {
+      console.error('일정 불러오기 실패:', error);
+    });
+}, []);
+
+
+  useEffect(() => {
   let cancelled = false;
 
   window.holidayAPI
@@ -108,57 +127,71 @@ const openSchedule = (schedule: Schedule) => {
 };
 
 
-  const toggleScheduleCompleted = (id: number) => {
+const toggleScheduleCompleted = async (id: number) => {
+  const schedule = schedules.find((item) => item.id === id);
+  if (!schedule) return;
+
+  const completed = !schedule.completed;
+
+  try {
+    await window.scheduleAPI.toggleCompleted(id, completed);
+
     setSchedules((current) =>
-      current.map((schedule) =>
-        schedule.id === id
-          ? { ...schedule, completed: !schedule.completed }
-          : schedule,
+      current.map((item) =>
+        item.id === id ? { ...item, completed } : item,
       ),
     );
-  };
+  } catch (error) {
+    console.error('완료 상태 저장 실패:', error);
+  }
+};
 
 
-  const saveSchedule = () => {
+  
+const saveSchedule = async () => {
   if (!title.trim() || !selectedDate) return;
 
-  if (editingId !== null) {
-    setSchedules((current) =>
-      current.map((schedule) =>
-        schedule.id === editingId
-          ? {
-              ...schedule,
-              title: title.trim(),
-              date: selectedDate,
-              time,
-              color,
-              alarm,
-              repeat,
-              memo,
-            }
-          : schedule,
-      ),
-    );
-  } else {
-    setSchedules((current) => [
-      ...current,
-      {
-        id: Date.now(),
-        title: title.trim(),
-        date: selectedDate,
-        time,
-        color,
-        alarm,
-        repeat,
-        memo,
-        completed: false,
-      },
-    ]);
-  }
+  const schedule = {
+    title: title.trim(),
+    date: selectedDate,
+    time,
+    color,
+    alarm,
+    repeat,
+    memo,
+    completed: false,
+  };
 
-  setSelectedDate('');
-  setEditingId(null);
+  try {
+    if (editingId !== null) {
+      const existing = schedules.find((item) => item.id === editingId);
+      if (!existing) return;
+
+      const updated = { ...existing, ...schedule };
+      await window.scheduleAPI.update(updated);
+
+      setSchedules((current) =>
+        current.map((item) =>
+          item.id === editingId ? updated : item,
+        ),
+      );
+    } else {
+      const id = await window.scheduleAPI.add(schedule);
+
+      setSchedules((current) => [
+        ...current,
+        { ...schedule, id },
+      ]);
+    }
+
+    setSelectedDate('');
+    setEditingId(null);
+  } catch (error) {
+    console.error('일정 저장 실패:', error);
+    alert('일정을 저장하지 못했어. 터미널 오류를 확인해 줘!');
+  }
 };
+
 
   return (
     <main className="app">

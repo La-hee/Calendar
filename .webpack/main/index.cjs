@@ -910,14 +910,35 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var dotenv__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(dotenv__WEBPACK_IMPORTED_MODULE_2__);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! path */ "path");
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var better_sqlite3__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! better-sqlite3 */ "better-sqlite3");
+/* harmony import */ var better_sqlite3__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(better_sqlite3__WEBPACK_IMPORTED_MODULE_4__);
 
 
 
 
+
+let db;
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if ((electron_squirrel_startup__WEBPACK_IMPORTED_MODULE_1___default())) {
     electron__WEBPACK_IMPORTED_MODULE_0__.app.quit();
 }
+const initDatabase = () => {
+    const dbPath = path__WEBPACK_IMPORTED_MODULE_3___default().join(electron__WEBPACK_IMPORTED_MODULE_0__.app.getPath('userData'), 'calendar.db');
+    db = new (better_sqlite3__WEBPACK_IMPORTED_MODULE_4___default())(dbPath);
+    db.exec(`
+    CREATE TABLE IF NOT EXISTS schedules (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      date TEXT NOT NULL,
+      time TEXT NOT NULL DEFAULT '',
+      color TEXT NOT NULL DEFAULT '',
+      alarm INTEGER NOT NULL DEFAULT 0,
+      repeat TEXT NOT NULL DEFAULT '',
+      memo TEXT NOT NULL DEFAULT '',
+      completed INTEGER NOT NULL DEFAULT 0
+    )
+  `);
+};
 const createWindow = () => {
     // Create the browser window.
     const mainWindow = new electron__WEBPACK_IMPORTED_MODULE_0__.BrowserWindow({
@@ -937,6 +958,63 @@ const createWindow = () => {
     // Open the DevTools.
     mainWindow.webContents.openDevTools();
 };
+// 일정 목록 불러오기
+electron__WEBPACK_IMPORTED_MODULE_0__.ipcMain.handle('schedules:get-all', () => {
+    return db.prepare(`
+    SELECT * FROM schedules ORDER BY date, time
+  `).all();
+});
+// 일정 추가하기
+// 일정 추가하기
+electron__WEBPACK_IMPORTED_MODULE_0__.ipcMain.handle('schedules:add', (_event, schedule) => {
+    const result = db.prepare(`
+    INSERT INTO schedules
+      (title, date, time, color, alarm, repeat, memo, completed)
+    VALUES
+      (@title, @date, @time, @color, @alarm, @repeat, @memo, @completed)
+  `).run({
+        title: schedule.title,
+        date: schedule.date,
+        time: schedule.time ?? '',
+        color: schedule.color ?? '',
+        alarm: schedule.alarm ?? '없음',
+        repeat: schedule.repeat ?? '반복 안 함',
+        memo: schedule.memo ?? '',
+        completed: schedule.completed ? 1 : 0,
+    });
+    return Number(result.lastInsertRowid);
+});
+// 일정 수정하기
+electron__WEBPACK_IMPORTED_MODULE_0__.ipcMain.handle('schedules:update', (_event, schedule) => {
+    db.prepare(`
+    UPDATE schedules
+    SET title = @title,
+        date = @date,
+        time = @time,
+        color = @color,
+        alarm = @alarm,
+        repeat = @repeat,
+        memo = @memo,
+        completed = @completed
+    WHERE id = @id
+  `).run({
+        ...schedule,
+        time: schedule.time ?? '',
+        color: schedule.color ?? '',
+        alarm: schedule.alarm ?? '없음',
+        repeat: schedule.repeat ?? '반복 안 함',
+        memo: schedule.memo ?? '',
+        completed: schedule.completed ? 1 : 0,
+    });
+    return true;
+});
+// 완료 상태 변경하기
+electron__WEBPACK_IMPORTED_MODULE_0__.ipcMain.handle('schedules:toggle-completed', (_event, id, completed) => {
+    db.prepare(`
+      UPDATE schedules SET completed = ? WHERE id = ?
+    `).run(completed ? 1 : 0, id);
+    return true;
+});
 // API 처리
 dotenv__WEBPACK_IMPORTED_MODULE_2___default().config({ path: path__WEBPACK_IMPORTED_MODULE_3___default().join(electron__WEBPACK_IMPORTED_MODULE_0__.app.getAppPath(), '.env') });
 electron__WEBPACK_IMPORTED_MODULE_0__.ipcMain.handle('get-holidays', async (_event, year, month) => {
@@ -970,6 +1048,7 @@ electron__WEBPACK_IMPORTED_MODULE_0__.ipcMain.handle('get-holidays', async (_eve
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 electron__WEBPACK_IMPORTED_MODULE_0__.app.whenReady().then(() => {
+    initDatabase();
     createWindow();
     // On OS X it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
@@ -990,6 +1069,17 @@ electron__WEBPACK_IMPORTED_MODULE_0__.app.on('window-all-closed', () => {
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
 
+
+/***/ },
+
+/***/ "better-sqlite3"
+/*!*********************************!*\
+  !*** external "better-sqlite3" ***!
+  \*********************************/
+(module) {
+
+"use strict";
+module.exports = require("better-sqlite3");
 
 /***/ },
 
