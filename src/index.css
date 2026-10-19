@@ -47,6 +47,7 @@ button {
   justify-content: flex-start;
   gap: 4px;
   margin-bottom: 14px;
+  -webkit-app-region: drag;
 }
 
 .month-title {

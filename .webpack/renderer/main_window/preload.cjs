@@ -154,7 +154,7 @@ eval("{/** @typedef {\"info\" | \"warning\" | \"error\"} LogLevel */\n\n/** @typ
 (__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("{__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var electron__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! electron */ \"electron\");\n/* harmony import */ var electron__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(electron__WEBPACK_IMPORTED_MODULE_0__);\n\nelectron__WEBPACK_IMPORTED_MODULE_0__.contextBridge.exposeInMainWorld('holidayAPI', {\n    getHolidays: (year, month) => electron__WEBPACK_IMPORTED_MODULE_0__.ipcRenderer.invoke('get-holidays', year, month),\n});\n//# sourceURL=[module]\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiLi9zcmMvcHJlbG9hZC50cyIsIm1hcHBpbmdzIjoiOzs7QUFDc0Q7QUFFdEQsbURBQWEsQ0FBQyxpQkFBaUIsQ0FBQyxZQUFZLEVBQUU7SUFDNUMsV0FBVyxFQUFFLENBQUMsSUFBWSxFQUFFLEtBQWEsRUFBRSxFQUFFLENBQzNDLGlEQUFXLENBQUMsTUFBTSxDQUFDLGNBQWMsRUFBRSxJQUFJLEVBQUUsS0FBSyxDQUFDO0NBQ2xELENBQUMsQ0FBQyIsInNvdXJjZXMiOlsid2VicGFjazovL2RhbC1jYWxlbmRhci8uL3NyYy9wcmVsb2FkLnRzPzA1NmEiXSwic291cmNlc0NvbnRlbnQiOlsiXG5pbXBvcnQgeyBjb250ZXh0QnJpZGdlLCBpcGNSZW5kZXJlciB9IGZyb20gJ2VsZWN0cm9uJztcblxuY29udGV4dEJyaWRnZS5leHBvc2VJbk1haW5Xb3JsZCgnaG9saWRheUFQSScsIHtcbiAgZ2V0SG9saWRheXM6ICh5ZWFyOiBudW1iZXIsIG1vbnRoOiBudW1iZXIpID0+XG4gICAgaXBjUmVuZGVyZXIuaW52b2tlKCdnZXQtaG9saWRheXMnLCB5ZWFyLCBtb250aCksXG59KTtcbiJdLCJuYW1lcyI6W10sInNvdXJjZVJvb3QiOiIifQ==\n//# sourceURL=webpack-internal:///./src/preload.ts\n\n}");
+eval("{__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var electron__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! electron */ \"electron\");\n/* harmony import */ var electron__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(electron__WEBPACK_IMPORTED_MODULE_0__);\n\nelectron__WEBPACK_IMPORTED_MODULE_0__.contextBridge.exposeInMainWorld('holidayAPI', {\n    getHolidays: (year, month) => electron__WEBPACK_IMPORTED_MODULE_0__.ipcRenderer.invoke('get-holidays', year, month),\n});\n//# sourceURL=[module]\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiLi9zcmMvcHJlbG9hZC50cyIsIm1hcHBpbmdzIjoiOzs7QUFDc0Q7QUFFdEQsbURBQWEsQ0FBQyxpQkFBaUIsQ0FBQyxZQUFZLEVBQUU7SUFDNUMsV0FBVyxFQUFFLENBQUMsSUFBWSxFQUFFLEtBQWEsRUFBRSxFQUFFLENBQzNDLGlEQUFXLENBQUMsTUFBTSxDQUFDLGNBQWMsRUFBRSxJQUFJLEVBQUUsS0FBSyxDQUFDO0NBQ2xELENBQUMsQ0FBQyIsInNvdXJjZXMiOlsid2VicGFjazovL2RhbC1jYWxlbmRhci8uL3NyYy9wcmVsb2FkLnRzPzA1NmEiXSwic291cmNlc0NvbnRlbnQiOlsiXHJcbmltcG9ydCB7IGNvbnRleHRCcmlkZ2UsIGlwY1JlbmRlcmVyIH0gZnJvbSAnZWxlY3Ryb24nO1xyXG5cclxuY29udGV4dEJyaWRnZS5leHBvc2VJbk1haW5Xb3JsZCgnaG9saWRheUFQSScsIHtcclxuICBnZXRIb2xpZGF5czogKHllYXI6IG51bWJlciwgbW9udGg6IG51bWJlcikgPT5cclxuICAgIGlwY1JlbmRlcmVyLmludm9rZSgnZ2V0LWhvbGlkYXlzJywgeWVhciwgbW9udGgpLFxyXG59KTtcclxuIl0sIm5hbWVzIjpbXSwic291cmNlUm9vdCI6IiJ9\n//# sourceURL=webpack-internal:///./src/preload.ts\n\n}");
 
 /***/ },
 
@@ -253,7 +253,7 @@ module.exports = require("events");
 /******/ 	__webpack_require__.hmrF = () => ("main_window." + __webpack_require__.h() + ".hot-update.json");
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
-/******/ 	__webpack_require__.h = () => ("8c38ada58449dc975ed3");
+/******/ 	__webpack_require__.h = () => ("622b0e4a9cd96826a963");
 /******/ 	
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */
 /******/ 	__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop));
@@ -740,6 +740,10 @@ module.exports = require("events");
 /******/ 	
 /******/ 	/* webpack/runtime/publicPath */
 /******/ 	__webpack_require__.p = "/";
+/******/ 	
+/******/ 	/* webpack/runtime/compat */
+/******/ 	
+/******/ 	if (typeof __webpack_require__ !== 'undefined') __webpack_require__.ab = "C:\\Users\\라희\\OneDrive\\바탕 화면\\ᏊᵕꈊᵕᏊ\\dal-calendar\\.webpack\\renderer" + "/native_modules/";
 /******/ 	
 /******/ 	/* webpack/runtime/jsonp chunk loading */
 /******/ 	(() => {

@@ -162,7 +162,7 @@ const openSchedule = (schedule: Schedule) => {
 
   return (
     <main className="app">
-      <header className="calendar-header">
+      <header className="calendar-header drag-area">
         <button
           className="nav-btn"
           onClick={() => setViewDate(new Date(year, month - 1, 1))}
