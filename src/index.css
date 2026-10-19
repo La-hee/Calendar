@@ -469,3 +469,13 @@ button {
   color: #5689df;
 }
 
+/* 달력 상단을 잡고 창 이동 */
+.calendar-header {
+  -webkit-app-region: drag;
+}
+
+/* 달력 상단의 버튼은 정상적으로 클릭 */
+.calendar-header button {
+  -webkit-app-region: no-drag;
+}
+
