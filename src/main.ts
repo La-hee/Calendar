@@ -2,6 +2,10 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import started from 'electron-squirrel-startup';
 import dotenv from 'dotenv';
 import path from 'path';
+import Database from 'better-sqlite3';
+
+
+let db: Database.Database;
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
@@ -10,6 +14,27 @@ declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 if (started) {
   app.quit();
 }
+
+const initDatabase = () => {
+  const dbPath = path.join(app.getPath('userData'), 'calendar.db');
+
+  db = new Database(dbPath);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS schedules (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      date TEXT NOT NULL,
+      time TEXT NOT NULL DEFAULT '',
+      color TEXT NOT NULL DEFAULT '',
+      alarm INTEGER NOT NULL DEFAULT 0,
+      repeat TEXT NOT NULL DEFAULT '',
+      memo TEXT NOT NULL DEFAULT '',
+      completed INTEGER NOT NULL DEFAULT 0
+    )
+  `);
+};
+
 
 const createWindow = (): void => {
   // Create the browser window.
@@ -34,6 +59,75 @@ const mainWindow = new BrowserWindow({
   // Open the DevTools.
   mainWindow.webContents.openDevTools();
 };
+
+// 일정 목록 불러오기
+ipcMain.handle('schedules:get-all', () => {
+  return db.prepare(`
+    SELECT * FROM schedules ORDER BY date, time
+  `).all();
+});
+
+// 일정 추가하기
+
+ // 일정 추가하기
+ipcMain.handle('schedules:add', (_event, schedule) => {
+  const result = db.prepare(`
+    INSERT INTO schedules
+      (title, date, time, color, alarm, repeat, memo, completed)
+    VALUES
+      (@title, @date, @time, @color, @alarm, @repeat, @memo, @completed)
+  `).run({
+    title: schedule.title,
+    date: schedule.date,
+    time: schedule.time ?? '',
+    color: schedule.color ?? '',
+    alarm: schedule.alarm ?? '없음',
+    repeat: schedule.repeat ?? '반복 안 함',
+    memo: schedule.memo ?? '',
+    completed: schedule.completed ? 1 : 0,
+  });
+
+  return Number(result.lastInsertRowid);
+});
+
+// 일정 수정하기
+ipcMain.handle('schedules:update', (_event, schedule) => {
+  db.prepare(`
+    UPDATE schedules
+    SET title = @title,
+        date = @date,
+        time = @time,
+        color = @color,
+        alarm = @alarm,
+        repeat = @repeat,
+        memo = @memo,
+        completed = @completed
+    WHERE id = @id
+  `).run({
+    ...schedule,
+    time: schedule.time ?? '',
+    color: schedule.color ?? '',
+    alarm: schedule.alarm ?? '없음',
+    repeat: schedule.repeat ?? '반복 안 함',
+    memo: schedule.memo ?? '',
+    completed: schedule.completed ? 1 : 0,
+  });
+
+  return true;
+});
+
+// 완료 상태 변경하기
+ipcMain.handle(
+  'schedules:toggle-completed',
+  (_event, id: number, completed: boolean) => {
+    db.prepare(`
+      UPDATE schedules SET completed = ? WHERE id = ?
+    `).run(completed ? 1 : 0, id);
+
+    return true;
+  },
+);
+
 
 // API 처리
 
@@ -79,6 +173,7 @@ ipcMain.handle('get-holidays', async (_event, year: number, month: number) => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
+  initDatabase();
   createWindow();
 
   // On OS X it's common to re-create a window in the app when the
