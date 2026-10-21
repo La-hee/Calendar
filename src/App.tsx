@@ -57,6 +57,12 @@ const occursOnDate = (
 
 export default function App() {
   const [viewDate, setViewDate] = useState(new Date());
+  const [apiKeyReady, setApiKeyReady] = useState(false);
+  const [checkingApiKey, setCheckingApiKey] = useState(true);
+  const [showApiKeySetup, setShowApiKeySetup] = useState(false);
+  const [apiKeyInput, setApiKeyInput] = useState('');
+  const [savingApiKey, setSavingApiKey] = useState(false);
+  const [apiKeyError, setApiKeyError] = useState('');
   const [endDate, setEndDate] = useState('');
   const [editingId, setEditingId] = useState<number | null>(null);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
@@ -64,7 +70,40 @@ export default function App() {
   const [title, setTitle] = useState('');
   const [time, setTime] = useState('09:00');
   const [color, setColor] = useState(colors[0].value);
+  const apiKeyInputRef = useRef<HTMLInputElement>(null);
   
+  
+  useEffect(() => {
+  let cancelled = false;
+
+  window.holidayAPI
+    .hasApiKey()
+    .then((exists) => {
+      if (cancelled) return;
+
+      setApiKeyReady(exists);
+      setShowApiKeySetup(!exists);
+    })
+    .catch((error) => {
+      console.error('API 키 확인 실패:', error);
+
+      if (!cancelled) {
+        setApiKeyError('API 키 설정 상태를 확인하지 못했어.');
+        setShowApiKeySetup(true);
+      }
+    })
+    .finally(() => {
+      if (!cancelled) {
+        setCheckingApiKey(false);
+      }
+    });
+
+  return () => {
+    cancelled = true;
+  };
+}, []);
+
+
   // 사용자가 추가한 색상 목록
   const [customColors, setCustomColors] = useState<
     { name: string; value: string }[]
@@ -205,6 +244,11 @@ const calendarWeeks = Array.from(
 }, [selectedDate, isWindowLocked]);
 
   useEffect(() => {
+  if (!apiKeyReady) {
+    setHolidays([]);
+    return;
+  }
+
   let cancelled = false;
 
   window.holidayAPI
@@ -216,6 +260,7 @@ const calendarWeeks = Array.from(
     })
     .catch((error) => {
       console.error('공휴일 조회 실패:', error);
+
       if (!cancelled) {
         setHolidays([]);
       }
@@ -224,7 +269,7 @@ const calendarWeeks = Array.from(
   return () => {
     cancelled = true;
   };
-}, [year, month]);
+}, [year, month, apiKeyReady]);
 
   const now = new Date();
   const today = dateKey(now);
@@ -360,9 +405,168 @@ const deleteSchedule = async () => {
   }
 };
 
+useEffect(() => {
+  if (!showApiKeySetup || checkingApiKey) return;
+
+  const input = apiKeyInputRef.current;
+  if (!input) return;
+
+  input.focus();
+}, [showApiKeySetup, checkingApiKey]);
+
+
+
+  const handleSaveApiKey = async () => {
+    const key = apiKeyInput.trim();
+
+    if (!key) {
+      setApiKeyError('공휴일 API 키를 입력해 줘.');
+      return;
+    }
+
+    setSavingApiKey(true);
+    setApiKeyError('');
+
+    try {
+      await window.holidayAPI.saveApiKey(key);
+
+      setApiKeyInput('');
+      setApiKeyReady(true);
+      setShowApiKeySetup(false);
+    } catch (error) {
+      console.error('API 키 저장 실패:', error);
+      setApiKeyError('API 키를 저장하지 못했어. 다시 시도해 줘!');
+    } finally {
+      setSavingApiKey(false);
+    }
+  };
+
+
 
   return (
     <main className="app">
+    
+      {showApiKeySetup && !checkingApiKey && (
+        <div
+          className="api-key-backdrop"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 20,
+            background: 'rgba(25, 30, 40, 0.45)',
+            backdropFilter: 'blur(8px)',
+          }}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="api-key-title"
+            style={{
+              width: '100%',
+              maxWidth: 380,
+              padding: 24,
+              borderRadius: 20,
+              background: '#fff',
+              color: '#333',
+              boxShadow: '0 16px 50px rgba(0,0,0,0.18)',
+            }}
+          >
+            <h2
+              id="api-key-title"
+              style={{ margin: '0 0 10px' }}
+            >
+              📅 공휴일 설정
+            </h2>
+
+            <p style={{ lineHeight: 1.6, fontSize: 14 }}>
+              공휴일을 표시하려면 공공데이터포털에서 발급받은
+              공휴일 API 키를 입력해 줘.
+              <br />
+              키는 이 컴퓨터에 저장돼.
+            </p>
+
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                void handleSaveApiKey();
+              }}
+            >
+              <label
+                htmlFor="holiday-api-key"
+                style={{
+                  display: 'block',
+                  marginBottom: 8,
+                  fontSize: 13,
+                  fontWeight: 600,
+                }}
+              >
+                공휴일 API 키
+              </label>
+
+              <input
+                ref={apiKeyInputRef}
+                id="holiday-api-key"
+                type="password"
+                autoComplete="off"
+                value={apiKeyInput}
+                onChange={(event) =>
+                  setApiKeyInput(event.target.value)
+                }
+                placeholder="발급받은 API 키 입력"
+                autoFocus
+                style={{
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  padding: '12px 14px',
+                  border: '1px solid #d8dce5',
+                  borderRadius: 10,
+                  fontSize: 13,
+                  marginBottom: 12,
+                }}
+              />
+
+              {apiKeyError && (
+                <p
+                  role="alert"
+                  style={{
+                    color: '#d64545',
+                    fontSize: 13,
+                    margin: '0 0 12px',
+                  }}
+                >
+                  {apiKeyError}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                disabled={savingApiKey || !apiKeyInput.trim()}
+                style={{
+                  width: '100%',
+                  padding: 12,
+                  border: 0,
+                  borderRadius: 10,
+                  background: '#7198ee',
+                  color: '#fff',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  opacity:
+                    savingApiKey || !apiKeyInput.trim()
+                      ? 0.6
+                      : 1,
+                }}
+              >
+                {savingApiKey ? '저장 중...' : '저장하고 시작하기'}
+              </button>
+            </form>
+          </section>
+        </div>
+      )}
+
       
     
 <header

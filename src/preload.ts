@@ -1,10 +1,18 @@
 
 import { contextBridge, ipcRenderer } from 'electron';
 
+
 contextBridge.exposeInMainWorld('holidayAPI', {
   getHolidays: (year: number, month: number) =>
     ipcRenderer.invoke('get-holidays', year, month),
+
+  hasApiKey: (): Promise<boolean> =>
+    ipcRenderer.invoke('holiday-key:exists'),
+
+  saveApiKey: (apiKey: string): Promise<boolean> =>
+    ipcRenderer.invoke('holiday-key:save', apiKey),
 });
+
 
 contextBridge.exposeInMainWorld('scheduleAPI', {
   getAll: () => ipcRenderer.invoke('schedules:get-all'),

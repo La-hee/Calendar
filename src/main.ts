@@ -2,7 +2,6 @@
 import {app, BrowserWindow, ipcMain, Notification, screen} from 'electron';
 import * as fs from 'fs';
 import started from 'electron-squirrel-startup';
-import dotenv from 'dotenv';
 import path from 'path';
 import Database from 'better-sqlite3';
 
@@ -323,6 +322,7 @@ const saveWindowBounds = () => {
 const createWindow = (): void => {
   const savedBounds = getSavedBounds();
   isWindowLocked = getSavedLockState();
+  
 
   mainWindow = new BrowserWindow({
     ...savedBounds,
@@ -514,32 +514,87 @@ ipcMain.handle(
 );
 
 
-// 환경변수 불러오기
-dotenv.config({
-  path: path.join(app.getAppPath(), '.env'),
+/** 공휴일 API 키 저장 파일 */
+const holidayKeyPath = path.join(
+  app.getPath('userData'),
+  'holiday-api-key.json',
+);
+
+/** 저장된 API 키 읽기 */
+const readHolidayApiKey = (): string => {
+  try {
+    if (!fs.existsSync(holidayKeyPath)) {
+      return '';
+    }
+
+    const saved = JSON.parse(
+      fs.readFileSync(holidayKeyPath, 'utf-8'),
+    );
+
+    return typeof saved.apiKey === 'string'
+      ? saved.apiKey.trim()
+      : '';
+  } catch (error) {
+    console.error('공휴일 API 키 읽기 실패:', error);
+    return '';
+  }
+};
+
+/** API 키 저장 */
+const saveHolidayApiKey = (apiKey: string): boolean => {
+  const key = apiKey.trim();
+
+  if (!key) {
+    throw new Error('API 키를 입력해 주세요.');
+  }
+
+  fs.writeFileSync(
+    holidayKeyPath,
+    JSON.stringify({ apiKey: key }, null, 2),
+    'utf-8',
+  );
+
+  return true;
+};
+
+/** API 키가 이미 저장되어 있는지 확인 */
+ipcMain.handle('holiday-key:exists', () => {
+  return readHolidayApiKey().length > 0;
 });
 
-// 공휴일 API
+/** API 키 저장 요청 */
+ipcMain.handle(
+  'holiday-key:save',
+  (_event, apiKey: string) => {
+    return saveHolidayApiKey(apiKey);
+  },
+);
+
+
+
+/** 공휴일 API */
 ipcMain.handle(
   'get-holidays',
   async (_event, year: number, month: number) => {
-    const serviceKey = process.env.HOLIDAY_API_KEY;
+    const serviceKey = readHolidayApiKey();
 
     if (!serviceKey) {
       throw new Error(
-        '.env 파일에서 HOLIDAY_API_KEY를 찾을 수 없습니다.',
+        '공휴일 API 키를 먼저 설정해 주세요.',
       );
     }
 
+    const params = new URLSearchParams({
+      serviceKey,
+      solYear: String(year),
+      solMonth: String(month).padStart(2, '0'),
+      _type: 'json',
+      numOfRows: '100',
+    });
+
     const response = await fetch(
       'https://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService/getRestDeInfo?' +
-        new URLSearchParams({
-          serviceKey,
-          solYear: String(year),
-          solMonth: String(month).padStart(2, '0'),
-          _type: 'json',
-          numOfRows: '100',
-        }),
+        params.toString(),
     );
 
     if (!response.ok) {
@@ -549,6 +604,14 @@ ipcMain.handle(
     }
 
     const data = await response.json();
+
+    if (data?.response?.header?.resultCode !== '00') {
+      throw new Error(
+        data?.response?.header?.resultMsg ??
+          '공휴일 API에서 오류가 발생했습니다.',
+      );
+    }
+
     const items = data?.response?.body?.items?.item;
 
     if (!items) return [];
@@ -561,6 +624,8 @@ ipcMain.handle(
       }));
   },
 );
+
+
 
 // 앱 초기화 완료 후 실행
 app.whenReady().then(() => {

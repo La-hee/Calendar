@@ -1,0 +1,1 @@
+declare module '@timfish/forge-externals-plugin';

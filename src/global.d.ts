@@ -3,17 +3,23 @@ export {};
 
 declare global {
   interface Window {
-    holidayAPI: {
-      getHolidays: (
-        year: number,
-        month: number,
-      ) => Promise<
-        {
-          date: string;
-          name: string;
-        }[]
-      >;
-    };
+    
+holidayAPI: {
+  getHolidays: (
+    year: number,
+    month: number,
+  ) => Promise<
+    {
+      date: string;
+      name: string;
+    }[]
+  >;
+
+  hasApiKey: () => Promise<boolean>;
+
+  saveApiKey: (apiKey: string) => Promise<boolean>;
+};
+
 
     windowAPI: {
       getLocked: () => Promise<boolean>;
