@@ -25,6 +25,7 @@ holidayAPI: {
       getLocked: () => Promise<boolean>;
       setLocked: (locked: boolean) => Promise<boolean>;
       setEditing: (editing: boolean) => Promise<boolean>;
+      quitApp: () => Promise<void>;
     };
 
     scheduleAPI: {

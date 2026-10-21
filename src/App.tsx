@@ -577,7 +577,7 @@ useEffect(() => {
   <div className="today-info">
     <strong className="today-date">
       <span className="today-prefix">오늘은</span>
-      {year}.{month + 1}.{now.getDate()}
+      {now.getFullYear()}.{now.getMonth() + 1}.{now.getDate()}
       <span className="today-weekday">{todayWeekday}</span>
     </strong>
   </div>
@@ -625,6 +625,28 @@ useEffect(() => {
   }}
 >
   {isWindowLocked ? '📌' : '📍'}
+</button>
+
+<button
+  type="button"
+  className="pin-btn no-drag quit-btn"
+  aria-label="앱 종료"
+  title="앱 종료"
+  onClick={() => {
+    const confirmed = window.confirm(
+      '이대로 완전히 종료하시겠어요?',
+    );
+
+    if (confirmed) {
+      void window.windowAPI.quitApp();
+    }
+  }}
+  style={{
+    color: '#D94A4A',
+    marginLeft: 6,
+  }}
+>
+  ×
 </button>
 
 </header>
@@ -810,7 +832,6 @@ useEffect(() => {
                 }}
               >
                 {daySchedules.map((schedule) => {
-                  const completionKey = `${schedule.id}:${key}`;
 
                   const isCompleted = schedule.completed;
 

@@ -25,45 +25,6 @@ const getDateKey = (date: Date) => {
   return `${year}-${month}-${day}`;
 };
 
-// 반복 일정이 해당 날짜에 실행되는지 확인
-const isScheduleToday = (
-  schedule: any,
-  date: Date,
-): boolean => {
-  const start = new Date(`${schedule.date}T00:00:00`);
-
-  const current = new Date(
-    date.getFullYear(),
-    date.getMonth(),
-    date.getDate(),
-  );
-
-  if (Number.isNaN(start.getTime()) || current < start) {
-    return false;
-  }
-
-  const repeat = schedule.repeat || '반복 안 함';
-
-  switch (repeat) {
-    case '매일':
-      return true;
-
-    case '매주':
-      return start.getDay() === current.getDay();
-
-    case '매월':
-      return start.getDate() === current.getDate();
-
-    case '매년':
-      return (
-        start.getMonth() === current.getMonth() &&
-        start.getDate() === current.getDate()
-      );
-
-    default:
-      return getDateKey(start) === getDateKey(current);
-  }
-};
 
 // 알람 확인
 const checkAlarms = () => {
@@ -97,10 +58,6 @@ const checkAlarms = () => {
     const occurrenceDate = new Date(
       now.getTime() + offset,
     );
-
-    if (!isScheduleToday(schedule, occurrenceDate)) {
-      continue;
-    }
 
     const [hour, minute] = schedule.time
       .split(':')
@@ -140,7 +97,7 @@ const checkAlarms = () => {
 
     const notification = new Notification({
       title: '📅 일정 알림 📅',
-      body: `${schedule.title}\n${schedule.time} 일정`,
+      body: `${schedule.title}`,
     });
 
     notification.on('click', () => {
@@ -179,7 +136,6 @@ const initDatabase = () => {
       time TEXT NOT NULL DEFAULT '',
       color TEXT NOT NULL DEFAULT '',
       alarm INTEGER NOT NULL DEFAULT 0,
-      repeat TEXT NOT NULL DEFAULT '',
       memo TEXT NOT NULL DEFAULT '',
       completed INTEGER NOT NULL DEFAULT 0
     )
@@ -362,6 +318,9 @@ const createWindow = (): void => {
   });
 };
 
+ipcMain.handle('app:quit', () => {
+  app.quit();
+});
 
 
 // 창 이동 잠금 상태 변경
@@ -372,10 +331,6 @@ ipcMain.handle(
 
     // 고정 상태 저장
     saveLockState(isWindowLocked);
-
-    mainWindow?.setFocusable(
-      !isWindowLocked || isEditingSchedule,
-    );
 
     return isWindowLocked;
   },
@@ -388,10 +343,6 @@ ipcMain.handle(
     if (!mainWindow) return false;
 
     isEditingSchedule = Boolean(editing);
-
-    mainWindow.setFocusable(
-      !isWindowLocked || isEditingSchedule,
-    );
 
     if (isEditingSchedule) {
       mainWindow.show();
@@ -422,9 +373,9 @@ ipcMain.handle('schedules:get-all', () => {
 ipcMain.handle('schedules:add', (_event, schedule) => {
   const result = db.prepare(`
     INSERT INTO schedules
-      (title, date, endDate, time, color, alarm, repeat, memo, completed)
+      (title, date, endDate, time, color, alarm, memo, completed)
     VALUES
-      (@title, @date, @endDate, @time, @color, @alarm, @repeat, @memo, @completed)
+      (@title, @date, @endDate, @time, @color, @alarm, @memo, @completed)
   `).run({
     title: schedule.title,
     date: schedule.date,
@@ -432,7 +383,6 @@ ipcMain.handle('schedules:add', (_event, schedule) => {
     time: schedule.time ?? '',
     color: schedule.color ?? '',
     alarm: schedule.alarm ?? '없음',
-    repeat: schedule.repeat ?? '반복 안 함',
     memo: schedule.memo ?? '',
     completed: schedule.completed ? 1 : 0,
   });
@@ -451,7 +401,6 @@ ipcMain.handle('schedules:update', (_event, schedule) => {
         time = @time,
         color = @color,
         alarm = @alarm,
-        repeat = @repeat,
         memo = @memo,
         completed = @completed
     WHERE id = @id
@@ -461,7 +410,6 @@ ipcMain.handle('schedules:update', (_event, schedule) => {
     time: schedule.time ?? '',
     color: schedule.color ?? '',
     alarm: schedule.alarm ?? '없음',
-    repeat: schedule.repeat ?? '반복 안 함',
     memo: schedule.memo ?? '',
     completed: schedule.completed ? 1 : 0,
   });
