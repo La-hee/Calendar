@@ -789,3 +789,40 @@ button {
     padding: 16px;
   }
 }
+
+/* 메인 달력 화면의 스크롤바 숨기기 */
+html,
+body,
+#root,
+.app {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* 구형 Edge */
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+#root::-webkit-scrollbar,
+.app::-webkit-scrollbar {
+  display: none; /* Chrome, Electron */
+}
+
+
+
+/* 앱 종료 버튼: 오른쪽 */
+.quit-btn {
+  right: 5px;
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  color: #D94A4A;
+}
+
+.quit-btn:hover {
+  background: rgb(217 74 74 / 10%) !important;
+  color: #C53535;
+}
+
+/* 창 고정 버튼: 종료 버튼 왼쪽으로 이동 */
+.calendar-header > .pin-btn:not(.quit-btn) {
+  right: 41px;
+}

@@ -71,6 +71,9 @@ contextBridge.exposeInMainWorld('windowAPI', {
   setLocked: (locked: boolean) =>
     ipcRenderer.invoke('window:set-locked', locked),
 
+  //앱 완전히 종료
+  quitApp: () => ipcRenderer.invoke('app:quit'),
+
    setEditing: (editing: boolean) =>
     ipcRenderer.invoke('window:set-editing', editing),
 });
