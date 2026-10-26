@@ -324,6 +324,7 @@ ipcMain.handle('app:quit', () => {
 
 
 // 창 이동 잠금 상태 변경
+// 창 이동 잠금 상태 변경
 ipcMain.handle(
   'window:set-locked',
   (_event, locked: boolean) => {
@@ -332,24 +333,48 @@ ipcMain.handle(
     // 고정 상태 저장
     saveLockState(isWindowLocked);
 
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      const canFocus = !isWindowLocked || isEditingSchedule;
+
+      // 고정 상태에서는 일반 클릭으로 창이 활성화되지 않도록 설정
+      mainWindow.setFocusable(canFocus);
+
+      // 고정할 때 현재 창이 활성화되어 있다면 포커스 해제
+      if (isWindowLocked && !isEditingSchedule) {
+        mainWindow.blur();
+      }
+    }
+
     return isWindowLocked;
   },
 );
 
 // 일정 편집 상태 변경
+// 일정 편집 상태 변경
 ipcMain.handle(
   'window:set-editing',
   (_event, editing: boolean) => {
-    if (!mainWindow) return false;
+    if (!mainWindow || mainWindow.isDestroyed()) {
+      return false;
+    }
 
     isEditingSchedule = Boolean(editing);
+
+    // 고정 해제 상태이거나 일정 편집 중일 때만 포커스 허용
+    const canFocus = !isWindowLocked || isEditingSchedule;
+
+    mainWindow.setFocusable(canFocus);
 
     if (isEditingSchedule) {
       mainWindow.show();
       mainWindow.setSkipTaskbar(true);
-      mainWindow.focus();
-    } else if (isWindowLocked) {
-      mainWindow.blur();
+
+      // 포커스 설정이 반영된 후 창 활성화
+      setTimeout(() => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.focus();
+        }
+      }, 50);
     }
 
     return true;
