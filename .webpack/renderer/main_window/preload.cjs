@@ -253,7 +253,7 @@ module.exports = require("events");
 /******/ 	__webpack_require__.hmrF = () => ("main_window." + __webpack_require__.h() + ".hot-update.json");
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
-/******/ 	__webpack_require__.h = () => ("28ad0eca3e59d2402ff4");
+/******/ 	__webpack_require__.h = () => ("182cb3aba52091c436af");
 /******/ 	
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */
 /******/ 	__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop));
@@ -740,10 +740,6 @@ module.exports = require("events");
 /******/ 	
 /******/ 	/* webpack/runtime/publicPath */
 /******/ 	__webpack_require__.p = "/";
-/******/ 	
-/******/ 	/* webpack/runtime/compat */
-/******/ 	
-/******/ 	if (typeof __webpack_require__ !== 'undefined') __webpack_require__.ab = "C:\\dal-calendar\\.webpack\\renderer" + "/native_modules/";
 /******/ 	
 /******/ 	/* webpack/runtime/jsonp chunk loading */
 /******/ 	(() => {
